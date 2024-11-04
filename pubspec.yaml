@@ -6,13 +6,15 @@ publish_to: "none"
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.5.3
+  sdk: ">=3.5.3 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
   google_fonts: ^6.2.1
+  font_awesome_flutter: ^10.2.1
+  file_picker: any
 
 dev_dependencies:
   flutter_test:
@@ -22,11 +24,8 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # Tambahkan assets untuk gambar di bawah ini
   assets:
     - assets/burger.png
     - assets/teh_botol.png
     - assets/iconm.png
     - assets/iconb.png
-
-    # Tambahkan gambar lainnya sesuai kebutuhan

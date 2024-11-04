@@ -1,20 +1,27 @@
 import 'package:flutter/material.dart';
+import 'product_form.dart';
 
 class CheckoutScreen extends StatelessWidget {
   const CheckoutScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Mengambil argumen dari Navigator
-    final List<Map<String, dynamic>> cartItems = ModalRoute.of(context)!.settings.arguments as List<Map<String, dynamic>>;
+    // Mengambil argumen dari Navigator, pastikan tidak null
+    final List<Map<String, dynamic>> cartItems = ModalRoute.of(context)!.settings.arguments as List<Map<String, dynamic>>? ?? [];
 
     double screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: CircleAvatar(
+            backgroundColor: Colors.white,
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.black),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
         ),
         title: const Text(
           'Checkout',
@@ -23,9 +30,15 @@ class CheckoutScreen extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.person_outline, color: Colors.black),
-            onPressed: () {},
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: CircleAvatar(
+              backgroundColor: Colors.white,
+              child: IconButton(
+                icon: const Icon(Icons.person_outline, color: Colors.black),
+                onPressed: () {},
+              ),
+            ),
           ),
         ],
       ),
@@ -33,7 +46,31 @@ class CheckoutScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Header Tabs
+            // Tombol Add Data di atas header tabel
+            Align(
+              alignment: Alignment.centerLeft,
+              child: ElevatedButton(
+                onPressed: () {
+                  // Navigasi ke halaman ProductForm
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ProductForm(),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text('Add Data +', style: TextStyle(fontSize: 16)),
+              ),
+            ),
+            const SizedBox(height: 16),
+            
+            // Header tabel
             Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
@@ -41,60 +78,29 @@ class CheckoutScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
-                children: [
-                  // Tab Add Data
-                  Container(
-                    width: screenWidth * 0.2,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'Add Data',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: const [
+                  Text(
+                    'Foto',
+                    style: TextStyle(color: Colors.black, fontSize: 16),
                   ),
-                  // Tab Nama Produk
-                  Container(
-                    width: screenWidth * 0.25,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: const Center(
-                      child: Text(
-                        'Nama Produk',
-                        style: TextStyle(color: Colors.black),
-                      ),
-                    ),
+                  Text(
+                    'Nama Produk',
+                    style: TextStyle(color: Colors.black, fontSize: 16),
                   ),
-                  // Tab Harga
-                  Container(
-                    width: screenWidth * 0.25,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: const Center(
-                      child: Text(
-                        'Harga',
-                        style: TextStyle(color: Colors.black),
-                      ),
-                    ),
+                  Text(
+                    'Harga',
+                    style: TextStyle(color: Colors.black, fontSize: 16),
                   ),
-                  // Tab Aksi
-                  Container(
-                    width: screenWidth * 0.2,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: const Center(
-                      child: Text(
-                        'Aksi',
-                        style: TextStyle(color: Colors.black),
-                      ),
-                    ),
+                  Text(
+                    'Aksi',
+                    style: TextStyle(color: Colors.black, fontSize: 16),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Item List
             Expanded(
               child: ListView.builder(
@@ -102,9 +108,9 @@ class CheckoutScreen extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final item = cartItems[index];
                   return _buildProductItem(
-                    item['title'],
-                    'Rp.${item['price'].toString()},00',
-                    item['imagePath'],
+                    item['title'] ?? 'Nama Produk',
+                    'Rp.${item['price']?.toString() ?? '0'},00',
+                    item['imagePath'] ?? 'assets/default_image.png', // Pastikan ada gambar default
                     screenWidth,
                   );
                 },
@@ -119,43 +125,52 @@ class CheckoutScreen extends StatelessWidget {
   Widget _buildProductItem(String name, String price, String imagePath, double screenWidth) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: Colors.grey, width: 0.5)),
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 5,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           // Gambar Produk
           Container(
             width: 40,
             height: 40,
-            child: Image.asset(
-              imagePath,
-              fit: BoxFit.cover,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              image: DecorationImage(
+                image: AssetImage(imagePath),
+                fit: BoxFit.cover,
+              ),
             ),
           ),
-          const SizedBox(width: 16),
           // Nama Produk
-          Container(
-            width: screenWidth * 0.3,
+          Expanded(
             child: Text(
               name,
               style: const TextStyle(fontSize: 16),
             ),
           ),
           // Harga
-          Container(
-            width: screenWidth * 0.3,
-            child: Text(
-              price,
-              style: const TextStyle(fontSize: 16),
-            ),
+          Text(
+            price,
+            style: const TextStyle(fontSize: 16, color: Colors.green),
           ),
           // Tombol Hapus
-          Container(
-            width: 40,
+          CircleAvatar(
+            backgroundColor: Colors.red.withOpacity(0.1),
             child: IconButton(
               icon: const Icon(Icons.delete, color: Colors.red),
-              onPressed: () {}, // Anda dapat menambahkan logika penghapusan jika diperlukan
+              onPressed: () {}, // Tambahkan logika hapus di sini jika diperlukan
             ),
           ),
         ],
