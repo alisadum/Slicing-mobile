@@ -7,6 +7,7 @@ class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _HomeScreenState createState() => _HomeScreenState();
 }
 
@@ -188,7 +189,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Fungsi untuk membuat card makanan/minuman
+  // Fungsi untuk membuat card makanan/minuman dengan icon +
   Widget foodCard({
     required String imagePath,
     required String title,
@@ -197,23 +198,37 @@ class _HomeScreenState extends State<HomeScreen> {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 4,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: [
-          Expanded(
-            child: ClipRRect(
-              borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
-              child: Image.asset(imagePath, width: double.infinity, fit: BoxFit.cover),
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
+                  child: Image.asset(imagePath, width: double.infinity, fit: BoxFit.cover),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text(price, style: const TextStyle(color: Colors.green)),
+                  ],
+                ),
+              ),
+            ],
           ),
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text(price, style: const TextStyle(color: Colors.green)),
-              ],
+          Positioned(
+            bottom: 8,
+            right: 8,
+            child: IconButton(
+              icon: const Icon(Icons.add_circle, color: Color.fromARGB(255, 18, 199, 72)),
+              onPressed: () {
+                // Tambahkan logika untuk aksi ikon "+" di sini
+              },
             ),
           ),
         ],
