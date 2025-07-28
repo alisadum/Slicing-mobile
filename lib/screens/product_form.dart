@@ -1,25 +1,48 @@
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:image_picker_web/image_picker_web.dart';
+import 'dart:typed_data';
 
 class ProductForm extends StatefulWidget {
   const ProductForm({super.key});
 
   @override
-  ProductFormState createState() => ProductFormState();
+  _ProductFormState createState() => _ProductFormState();
 }
 
-class ProductFormState extends State<ProductForm> {
+class _ProductFormState extends State<ProductForm> {
   String? _selectedCategory;
   final List<String> _categories = ['Makanan', 'Minuman'];
-  String? _selectedFileName;
+  Uint8List? _selectedImage;
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _priceController = TextEditingController();
 
-  Future<void> _pickFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
-    if (result != null) {
+  Future<void> _pickImage() async {
+    final image = await ImagePickerWeb.getImageAsBytes();
+    if (image != null) {
       setState(() {
-        _selectedFileName = result.files.single.name;
+        _selectedImage = image;
       });
     }
+  }
+
+  void _submitData() {
+    if (_nameController.text.isEmpty ||
+        _priceController.text.isEmpty ||
+        _selectedCategory == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Lengkapi semua data sebelum submit!')),
+      );
+      return;
+    }
+
+    final productData = {
+      'name': _nameController.text,
+      'category': _selectedCategory,
+      'price': int.tryParse(_priceController.text) ?? 0,
+      'image': _selectedImage,
+    };
+
+    Navigator.of(context).pop(productData);
   }
 
   @override
@@ -29,126 +52,106 @@ class ProductFormState extends State<ProductForm> {
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Container(
-            padding: const EdgeInsets.all(20.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 5),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.black),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.person, color: Colors.black),
-                      onPressed: () {},
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(20.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: 'Nama Produk',
-                    hintText: 'Masukan nama produk',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Colors.grey, width: 1),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[300],
-                    contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: 'Harga',
-                    hintText: 'Masukan Harga',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Colors.grey, width: 1),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[300],
-                    contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  decoration: InputDecoration(
-                    labelText: 'Kategori produk',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Colors.grey, width: 1),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[300],
-                    contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                  ),
-                  value: _selectedCategory,
-                  items: _categories
-                      .map((category) => DropdownMenuItem(
-                            value: category,
-                            child: Text(category),
-                          ))
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedCategory = value;
-                    });
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: 'Image',
-                    hintText: _selectedFileName ?? 'Choose file',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Colors.grey, width: 1),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[300],
-                    contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                  ),
-                  readOnly: true,
-                  onTap: _pickFile,
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // Handle form submission
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: _nameController,
+                      decoration: InputDecoration(
+                        hintText: 'Masukkan nama produk',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey[200],
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    child: const Text(
-                      'Submit',
-                      style: TextStyle(fontSize: 16, color: Colors.white),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _priceController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        hintText: 'Masukkan harga',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey[200],
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      value: _selectedCategory,
+                      hint: const Text('Kategori produk'),
+                      items: _categories
+                          .map((category) => DropdownMenuItem(
+                                value: category,
+                                child: Text(category),
+                              ))
+                          .toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedCategory = value;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    GestureDetector(
+                      onTap: _pickImage,
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              _selectedImage == null
+                                  ? 'Pilih gambar'
+                                  : 'Gambar dipilih',
+                              style: const TextStyle(color: Colors.black),
+                            ),
+                            const Icon(Icons.image, color: Colors.black),
+                          ],
+                        ),
+                      ),
+                    ),
+                    if (_selectedImage != null) ...[
+                      const SizedBox(height: 16),
+                      Image.memory(_selectedImage!, height: 100, fit: BoxFit.cover),
+                    ],
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _submitData,
+                        child: const Text('Submit'),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

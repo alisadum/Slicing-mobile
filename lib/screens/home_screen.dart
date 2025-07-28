@@ -1,234 +1,334 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'cart.dart';
+import 'check_out.dart';
+import 'history.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'product_form.dart'; // Added import for the Product Form screen
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _HomeScreenState createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String selectedCategory = "All";
-  int selectedIndex = 0;
+  int _selectedIndex = 0;
+
+  // Menyimpan item cart secara global
+  List<Map<String, dynamic>> cartItems = [];
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Food Menu',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: Colors.purple[100],
-        actions: [
-          IconButton(
-            icon: const FaIcon(FontAwesomeIcons.cartShopping, color: Colors.black),
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const CartScreen()));
-            },
-          ),
-        ],
+    List<Widget> pages = [
+      HomeContent(
+        onAddToCart: _addToCart,
       ),
+      CartScreen(
+        cartItems: cartItems,
+        onCheckout: _goToCheckout,
+      ),
+      CheckoutScreen(
+        cartItems: cartItems,
+      ),
+      const HistoryScreen(), // Tambahkan tab History
+    ];
+
+    return Scaffold(
+      backgroundColor: Colors.grey[50],
       body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Pilihan kategori
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Container untuk kategori "All"
-              Column(
-                children: [
-                  Container(
-                    height: 90,
-                    width: 90,
-                    margin: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.blueAccent,
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(15),
-                      child: Image.asset(
-                        'assets/burger.png',
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    "All",
-                    style: GoogleFonts.comicNeue(
-                      fontSize: 16,
-                      color: Colors.black,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-              
-              // Container untuk kategori "Makanan"
-              Column(
-                children: [
-                  Container(
-                    height: 90,
-                    width: 90,
-                    margin: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(15),
-                      child: Image.asset(
-                        'assets/iconm.png',
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    "Makanan",
-                    style: GoogleFonts.comicNeue(
-                      fontSize: 16,
-                      color: Colors.black,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-              
-              // Container untuk kategori "Minuman"
-              Column(
-                children: [
-                  Container(
-                    height: 90,
-                    width: 90,
-                    margin: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(15),
-                      child: Image.asset(
-                        'assets/teh_botol.png',
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    "Minuman",
-                    style: GoogleFonts.comicNeue(
-                      fontSize: 16,
-                      color: Colors.black,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ],
-          ),
-          // Teks judul bagian
-          const Padding(
-            padding: EdgeInsets.all(16),
-            child: Text('All Food', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          ),
-          // Daftar makanan/minuman dalam grid
-          Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: 6,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 0.75,
-              ),
-              itemBuilder: (context, index) {
-                return foodCard(
-                  imagePath: index == 2 ? 'assets/teh_botol.png' : 'assets/burger.png',
-                  title: index == 2 ? 'Teh Botol' : 'Burger King Medium',
-                  price: index == 2 ? 'Rp. 4,000.00' : 'Rp. 50,000.00',
-                );
-              },
+          // Header dengan background putih
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.fromLTRB(16, 40, 16, 16),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.menu, color: Colors.black),
+                  onPressed: () {},
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.search, color: Colors.black),
+                  onPressed: () {},
+                ),
+              ],
             ),
           ),
+          Expanded(child: pages[_selectedIndex]), // Menampilkan halaman yang dipilih
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: selectedIndex,
-        onTap: (index) {
-          setState(() {
-            selectedIndex = index;
-          });
-          if (index == 1) {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const CartScreen()));
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: FaIcon(FontAwesomeIcons.house, color: Colors.purple),
-            label: 'Home',
+      bottomNavigationBar: (_selectedIndex == 0 || _selectedIndex == 3) 
+          ? BottomNavigationBar(
+              currentIndex: _selectedIndex,
+              onTap: (index) {
+                setState(() {
+                  _selectedIndex = index;
+                });
+              },
+              type: BottomNavigationBarType.fixed,
+              items: const [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.home),
+                  label: 'Home',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.shopping_cart),
+                  label: 'Cart',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.payment),
+                  label: 'Checkout',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.history),
+                  label: 'History',
+                ),
+              ],
+              selectedItemColor: Colors.orange,
+              unselectedItemColor: Colors.grey,
+              backgroundColor: Colors.white,
+            )
+          : null,
+    );
+  }
+
+  void _addToCart(Map<String, dynamic> item) {
+    setState(() {
+      cartItems.add(item);
+    });
+  }
+
+  void _goToCheckout() {
+    setState(() {
+      _selectedIndex = 2;
+    });
+  }
+}
+
+class HomeContent extends StatefulWidget {
+  final Function(Map<String, dynamic>) onAddToCart;
+
+  const HomeContent({super.key, required this.onAddToCart});
+
+  @override
+  _HomeContentState createState() => _HomeContentState();
+}
+
+class _HomeContentState extends State<HomeContent> {
+  String selectedCategory = "All";
+
+  final List<Map<String, String>> foodItems = [
+    {"title": "Burger King Medium", "price": "50000", "category": "Makanan", "image": "assets/burger.png"},
+    {"title": "French Fries", "price": "20000", "category": "Makanan", "image": "assets/french_fries.png"},
+    {"title": "Teh Botol Sosro", "price": "15000", "category": "Minuman", "image": "assets/teh_botol.png"},
+    {"title": "Coca Cola", "price": "12000", "category": "Minuman", "image": "assets/coca_cola.png"},
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    List<Map<String, String>> filteredItems = foodItems.where((item) {
+      if (selectedCategory == "All") return true;
+      return item["category"] == selectedCategory;
+    }).toList();
+
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Background putih untuk area kategori
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                categoryBox("All", "assets/burger.png"),
+                categoryBox("Makanan", "assets/iconm.png"),
+                categoryBox("Minuman", "assets/teh_botol.png"),
+              ],
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: FaIcon(FontAwesomeIcons.cartShopping, color: Colors.pink),
-            label: 'Cart',
+          const SizedBox(height: 20),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              'All Food',
+              style: TextStyle(
+                fontSize: 20, 
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: FaIcon(FontAwesomeIcons.user, color: Colors.blue),
-            label: 'Profile',
+          const SizedBox(height: 16),
+          // Daftar makanan/minuman yang sudah difilter
+          GridView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: filteredItems.length,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 16,
+              childAspectRatio: 0.75,
+            ),
+            itemBuilder: (context, index) {
+              return foodCard(
+                imagePath: filteredItems[index]["image"]!,
+                title: filteredItems[index]["title"]!,
+                price: filteredItems[index]["price"]!,
+                onAddToCart: () {
+                  widget.onAddToCart({
+                    'title': filteredItems[index]["title"]!,
+                    'price': double.parse(filteredItems[index]["price"]!),
+                    'imagePath': filteredItems[index]["image"]!,
+                    'quantity': 1,
+                  });
+                },
+              );
+            },
           ),
+          const SizedBox(height: 100), // Space for bottom navigation
         ],
       ),
     );
   }
 
-  // Fungsi untuk membuat card makanan/minuman dengan icon +
+  Widget categoryBox(String category, String imagePath) {
+    bool isSelected = selectedCategory == category;
+    
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          selectedCategory = category;
+        });
+      },
+      child: Container(
+        height: 80,
+        width: 80,
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.orange[100] : Colors.grey[100],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? Colors.orange : Colors.transparent,
+            width: 2,
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Image.asset(
+            imagePath, 
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Icon(
+                Icons.food_bank,
+                size: 40,
+                color: isSelected ? Colors.orange : Colors.grey,
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget foodCard({
     required String imagePath,
     required String title,
     required String price,
+    required VoidCallback onAddToCart,
   }) {
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 4,
-      child: Stack(
+      shadowColor: Colors.black.withOpacity(0.1),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
-                  child: Image.asset(imagePath, width: double.infinity, fit: BoxFit.cover),
+          Expanded(
+            flex: 3,
+            child: Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(16), 
+                  topRight: Radius.circular(16)
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    Text(price, style: const TextStyle(color: Colors.green)),
-                  ],
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16), 
+                  topRight: Radius.circular(16)
+                ),
+                child: Image.asset(
+                  imagePath, 
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: Colors.grey[200],
+                      child: const Icon(Icons.image, size: 50, color: Colors.grey),
+                    );
+                  },
                 ),
               ),
-            ],
+            ),
           ),
-          Positioned(
-            bottom: 8,
-            right: 8,
-            child: IconButton(
-              icon: const Icon(Icons.add_circle, color: Color.fromARGB(255, 18, 199, 72)),
-              onPressed: () {
-                // Tambahkan logika untuk aksi ikon "+" di sini
-              },
+          Expanded(
+            flex: 2,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title, 
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Rp. $price', 
+                        style: const TextStyle(
+                          color: Colors.green,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 32,
+                    child: ElevatedButton(
+                      onPressed: onAddToCart,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        "Add to Cart",
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
